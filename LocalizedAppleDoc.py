@@ -9,6 +9,7 @@ import shutil
 def convert_comment(filepath, lang):
     with open(filepath, "rt+") as file:
         text = file.read()
+        # 多行注释 支持/* */ /*! */ /** */ 注释其他行必须" *  "开头
         rex = "/\\*[\\*!]?.*? \\*/"
         rex1 = " \\*  \\\\~" + lang + ".*?" + " \\*  \\\\~"
         rex2 = " \\*  \\\\~" + lang + ".*?" + " \\*/"
@@ -39,6 +40,19 @@ def convert_comment(filepath, lang):
             print("not found language comment...")
             # print(item)
             # text = text.replace(item + "\n", "", 1)
+        # 单行注释 ///< //!< 格式
+        single_comment_rex = "//[/!]< .*?\n"
+        single_comments = re.findall(single_comment_rex, text, re.RegexFlag.DOTALL)
+        for single_comment in single_comments:
+            content_rex = "\\\\~" + lang + ".*?[\\\\\n]"
+            contents = re.findall(content_rex, single_comment, re.RegexFlag.DOTALL)
+            if len(contents) > 0:
+                content = contents[0]
+                content = content[2+len(lang):-1]
+                content = single_comment[:4] + content + "\n"
+                text = text.replace(single_comment, content, 1)
+                continue
+            print("not found language comment...")
         file.seek(0, 0)
         file.truncate(len(text))
         file.write(text)
@@ -51,8 +65,9 @@ def parse_argv():
 
 
 if __name__ == '__main__':
-    parser = parse_argv()
-    framework_source_path = parser.framework
+    # parser = parse_argv()
+    # framework_source_path = parser.framework
+    framework_source_path = "/Users/ldc/Desktop/Demo/Doc/Doc.framework"
     langs = ["chinese", "english"]
     company_name = "hanin"
     company_id = "com.hanin"

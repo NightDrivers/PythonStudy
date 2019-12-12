@@ -10,49 +10,23 @@ def convert_comment(filepath, lang):
     with open(filepath, "rt+") as file:
         text = file.read()
         # 多行注释 支持/* */ /*! */ /** */ 注释其他行必须" *  "开头
-        rex = "/\\*[\\*!]?.*? \\*/"
-        rex1 = " \\*  \\\\~" + lang + ".*?" + " \\*  \\\\~"
-        rex2 = " \\*  \\\\~" + lang + ".*?" + " \\*/"
-        items = re.findall(rex, text, re.RegexFlag.DOTALL)
-        # print(items)
-        for item in items:
-            if item[2:3] == "\n":
-                prefix = item[:3]
-            else:
-                prefix = item[:4]
-            results = re.findall(rex1, item, re.RegexFlag.DOTALL)
+        muti_line_comment_rex = "/\\*[\\*!]?\n(.*?) \\*/"
+        muti_line_content_rex = " \\*  \\\\~" + lang + "\n(.*?)" + "( \\*  \\\\~| \\*/)"
+        muti_line_comments = re.findall(muti_line_comment_rex, text, re.RegexFlag.DOTALL)
+        for muti_line_comment in muti_line_comments:
+            results = re.findall(muti_line_content_rex, muti_line_comment, re.RegexFlag.DOTALL)
             if len(results) > 0:
-                content = results[0]
-                content = content[7+len(lang):-6]
-                content = prefix + content + " */"
-                # print(content)
-                text = text.replace(item, content, 1)
-                continue
-            else:
-                results = re.findall(rex2, item, re.RegexFlag.DOTALL)
-                if len(results) > 0:
-                    content = results[0]
-                    content = content[7 + len(lang):-3]
-                    content = prefix + content + " */"
-                    # print(content)
-                    text = text.replace(item, content, 1)
-                    continue
-            print("not found language comment...")
-            # print(item)
-            # text = text.replace(item + "\n", "", 1)
+                result = results[0]
+                text = text.replace(muti_line_comment, result[0], 1)
         # 单行注释 ///< //!< 格式
-        single_comment_rex = "//[/!]< .*?\n"
-        single_comments = re.findall(single_comment_rex, text, re.RegexFlag.DOTALL)
-        for single_comment in single_comments:
-            content_rex = "\\\\~" + lang + ".*?[\\\\\n]"
-            contents = re.findall(content_rex, single_comment, re.RegexFlag.DOTALL)
-            if len(contents) > 0:
-                content = contents[0]
-                content = content[2+len(lang):-1]
-                content = single_comment[:4] + content + "\n"
-                text = text.replace(single_comment, content, 1)
-                continue
-            print("not found language comment...")
+        single_line_comment_rex = "//[/!]< *(.*?)\n"
+        single_line_content_rex = "\\\\~" + lang + " *(.*?)( *\\\\~|\n)"
+        single_line_comments = re.findall(single_line_comment_rex, text, re.RegexFlag.DOTALL)
+        for single_line_comment in single_line_comments:
+            results = re.findall(single_line_content_rex, single_line_comment, re.RegexFlag.DOTALL)
+            if len(results) > 0:
+                result = results[0]
+                text = text.replace(single_line_comment, result[0], 1)
         file.seek(0, 0)
         file.truncate(len(text))
         file.write(text)

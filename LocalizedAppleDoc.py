@@ -11,7 +11,7 @@ def convert_comment(filepath, lang):
         text = file.read()
         # 多行注释 支持/* */ /*! */ /** */ 注释其他行必须" *  "开头
         muti_line_comment_rex = "/\\*[\\*!]?\n(.*?) \\*/"
-        muti_line_content_rex = " \\*  \\\\~" + lang + "\n(.*?)" + "( \\*  \\\\~| \\*/)"
+        muti_line_content_rex = "[^\n]*\\\\~" + lang + "\n(.*?)" + "([^\n]*\\\\~| \\*/)"
         muti_line_comments = re.findall(muti_line_comment_rex, text, re.RegexFlag.DOTALL)
         for muti_line_comment in muti_line_comments:
             results = re.findall(muti_line_content_rex, muti_line_comment, re.RegexFlag.DOTALL)
@@ -39,9 +39,9 @@ def parse_argv():
 
 
 if __name__ == '__main__':
-    # parser = parse_argv()
-    # framework_source_path = parser.framework
-    framework_source_path = "/Users/ldc/Desktop/Demo/Doc/Doc.framework"
+    parser = parse_argv()
+    framework_source_path = parser.framework
+    # framework_source_path = "/Users/ldc/Desktop/Demo/Doc/Doc.framework"
     langs = ["chinese", "english"]
     company_name = "hanin"
     company_id = "com.hanin"

@@ -1,7 +1,6 @@
 # -*- coding:utf-8 -*-
-import parser
-# 3.2新出命令行解析模块 https://docs.python.org/3/howto/argparse.html#introducing-positional-arguments
 import argparse
+# 3.2新出命令行解析模块 https://docs.python.org/3/howto/argparse.html#introducing-positional-arguments
 import subprocess
 import re
 import os
@@ -11,6 +10,7 @@ from datetime import datetime
 import requests_toolbelt
 import requests
 import json
+import ShellCommand
 
 
 def parse_argv():
@@ -55,22 +55,10 @@ def upload_ipa_to_pgyer(path: str, appname: str = None):
         return -1, d["message"]
 
 
-def excute_shell(command: str, verbose: bool = False):
-    params = {"text": True}
-    program = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, **params)
-    outputs = []
-    while program.poll() is None:
-        # 当程序退出时，似乎会读取到一个空字符串
-        item = program.stdout.readline()
-        if verbose:
-            print(item, end="")
-        outputs.append(item)
-    return program.returncode, "".join(outputs)
-
-
 if __name__ == '__main__':
     # 判断用于安装包导出的配置文件是否存在
     home = subprocess.getoutput("cd ~;pwd")
+    # ipa导出配置文件，模版见XcarchiveExportOptions.plist
     xcarchiveExportOptionsPath = home + "/Desktop/config_file/XcarchiveExportOptions.plist"
     if not os.path.exists(xcarchiveExportOptionsPath):
         print("xcodebuild -exportArchiv导出配置文件不存在: " + xcarchiveExportOptionsPath)
@@ -89,7 +77,7 @@ if __name__ == '__main__':
     archivePath += argv.scheme + now.strftime("\\ %Y-%m-%d,\\ %I.%M%p") + ".xcarchive"
     cmd += "-archivePath " + archivePath
     print("archiving...")
-    flag, output = excute_shell(cmd, is_verbose)
+    flag, output = ShellCommand.excute_shell(cmd, is_verbose)
     if flag != 0:
         print("Archive Fail")
         sys.exit(1)
@@ -108,7 +96,7 @@ if __name__ == '__main__':
     cmd += "-exportPath " + exportPath + " "
     cmd += "-exportOptionsPlist " + xcarchiveExportOptionsPath
     print("exporting...")
-    flag, output = excute_shell(cmd, is_verbose)
+    flag, output = ShellCommand.excute_shell(cmd, is_verbose)
     if argv.deleteArchive:
         cmd = "rm -r " + archivePath
         subprocess.getstatusoutput(cmd)

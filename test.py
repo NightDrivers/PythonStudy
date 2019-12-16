@@ -16,3 +16,6 @@ if __name__ == '__main__':
     print(repr(b))
     c = json.loads(b)
     print(c)
+    d = "a.b.c"
+    e = d.split(".")
+    print(e)

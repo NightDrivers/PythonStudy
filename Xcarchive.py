@@ -16,12 +16,12 @@ import json
 def parse_argv():
     __parse = argparse.ArgumentParser()
     __parse.add_argument("scheme")
-    __parse.add_argument("-deleteArchive", help="删除XcArchive文件", action="store_true")
-    __parse.add_argument("-localIpa", help="只存储ipa包到本地，不上传蒲公英", action="store_true")
-    __parse.add_argument("-exportPath", help="打包文件导出路径", default="~/Documents/")
-    __parse.add_argument("-verbose", help="打印执行信息", action="store_true")
-    __parse.add_argument("-workspace", help="workspace Name")
-    __parse.add_argument("-buildName", help="蒲公英应用名称")
+    __parse.add_argument("-deleteArchive", "-da", help="删除XcArchive文件", action="store_true")
+    __parse.add_argument("-localIpa", "-li", help="只存储ipa包到本地，不上传蒲公英", action="store_true")
+    __parse.add_argument("-exportPath", "-ep", help="打包文件导出路径", default="~/Documents/")
+    __parse.add_argument("-verbose", "-v", help="打印执行信息", action="store_true")
+    __parse.add_argument("-workspace", "-w", help="workspace Name")
+    __parse.add_argument("-buildName", "-bn", help="蒲公英应用名称")
     # __parse.add_argument("--method", "-m", help="导出方式", default="enterprise")
     return __parse.parse_args()
 

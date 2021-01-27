@@ -83,13 +83,13 @@ if __name__ == '__main__':
         sys.exit(1)
     # 判断签名使用的证书是否正确，以下为enterprise对应的开发证书，根据自己证书进行修改
     rex = '"Apple.*?\\([0-9a-zA-Z]{10}\\)"'
-    sign_ids = re.findall(rex, output, re.RegexFlag.DOTALL)
-    if len(sign_ids) < 1 or sign_ids[0] != '"Apple Development: Rongjian Qiu (TJDV49J299)"':
-        if argv.deleteArchive:
-            cmd = "rm -r " + archivePath
-            subprocess.getstatusoutput(cmd)
-        print("error sign identity: " + sign_ids[0])
-        sys.exit(1)
+    # sign_ids = re.findall(rex, output, re.RegexFlag.DOTALL)
+    # if len(sign_ids) < 1 or sign_ids[0] != '"Apple Development: Rongjian Qiu (L5J53ML6QB)"':
+    #     if argv.deleteArchive:
+    #         cmd = "rm -r " + archivePath
+    #         subprocess.getstatusoutput(cmd)
+    #     print("error sign identity: " + sign_ids[0])
+    #     sys.exit(1)
     # 将xcarchive文件导出为可安装文件包
     cmd = "xcodebuild -exportArchive -allowProvisioningUpdates "
     cmd += "-archivePath " + archivePath + " "

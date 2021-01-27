@@ -52,9 +52,9 @@ def parse_argv():
 
 
 def main():
-    # parser = parse_argv()
-    # framework_source_path = parser.framework
-    framework_source_path = "/Users/ldc/Desktop/外发文件/Hipos/HiPosExample/HiPosSDK.framework"
+    parser = parse_argv()
+    framework_source_path = parser.framework
+    # framework_source_path = "/Users/ldc/Desktop/外发文件/Hipos/HiPosExample/HiPosSDK.framework"
     langs = ["chinese", "english"]
     company_name = "hanin"
     company_id = "com.hanin"

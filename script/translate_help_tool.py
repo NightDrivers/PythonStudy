@@ -3,8 +3,7 @@ import openpyxl
 import os
 import subprocess
 import argparse
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
-import re
+from openpyxl.styles import Alignment
 
 
 line_localize_rex = '^".?" = ".?";\\n$'

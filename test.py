@@ -1,21 +1,10 @@
 # -*- coding: utf-8 -*-
-import re
+import requests
+import uuid
 import json
 
 
-def func1():
-    a = 5
-
-
 if __name__ == '__main__':
-    a = 1
-    func1()
-    print(a)
-    dic = {'a': "b", "c": 1}
-    b = json.dumps(dic)
-    print(repr(b))
-    c = json.loads(b)
-    print(c)
-    d = "a.b.c"
-    e = d.split(".")
-    print(e)
+    file = requests.get('https://t7.baidu.com/it/u=2511982910,2454873241&fm=193&f=GIF')
+    dest = open(str(uuid.uuid1()), 'wb')
+    dest.write(file.content)

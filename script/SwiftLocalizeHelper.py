@@ -24,7 +24,7 @@ def parse_argv():
     __parse.add_argument("-verbose", help="打印执行信息", action="store_true")
     __parse.add_argument("-textSuffix", help="项目翻译文本代码后缀", default="\\.localized")
     __parse.add_argument("-codeSuffix", help="代码文件后缀", default=".swift")
-    __parse.add_argument("-ignorePrefix", help="忽略跟随该前缀的文本", default="(?<!HLog.share.write\\()")
+    __parse.add_argument("-ignorePrefix", help="忽略跟随该前缀的文本", default=None)
     return __parse.parse_args()
 
 

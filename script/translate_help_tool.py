@@ -4,10 +4,12 @@ import os
 import subprocess
 import argparse
 from openpyxl.styles import Alignment
+import re
 
 
 line_localize_rex = '^".?" = ".?";\\n$'
 excel_path = "/Users/ldc/Desktop/翻译/翻译汇总.xlsx"
+format_string_placeholder_rex = '%@|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*[diouxXfcsb]|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
 
 
 def localize_export(root_path: str, mode_name: str, strings_name: str):
@@ -75,7 +77,7 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
 
 
 def localize_import(root_path: str, mode_name: str, strings_name: str):
-    global excel_path
+    global excel_path, format_string_placeholder_rex
     if not os.path.exists(excel_path):
         print('翻译文件不存在')
         exit(-1)
@@ -92,6 +94,8 @@ def localize_import(root_path: str, mode_name: str, strings_name: str):
 
     for i in range(2, max_column+1):
         lang = ws.cell(row=1, column=i).value
+        if lang is None or len(lang) == 0:
+            continue
         string_file_path = '{0}/{1}.lproj/{2}.strings'.format(root_path, lang, strings_name)
         string_file = open(string_file_path, 'wt')
         for j in range(2, max_row+1):
@@ -99,7 +103,14 @@ def localize_import(root_path: str, mode_name: str, strings_name: str):
             value = ws.cell(row=j, column=i).value
             if value is None:
                 value = ""
-            temp = '"{0}" = "{1}";\n'.format(key, value);
+            if value != "":
+                key_placeholder_list = re.findall(format_string_placeholder_rex, key, re.RegexFlag.DOTALL)
+                if len(key_placeholder_list) != 0:
+                    value_placeholder_list = re.findall(format_string_placeholder_rex, value, re.RegexFlag.DOTALL)
+                    if key_placeholder_list != value_placeholder_list:
+                        print("占位符不匹配 模块: {0} 位置: 第{1}行 语言: {2}".format(mode_name, j, lang))
+                        value = ""
+            temp = '"{0}" = "{1}";\n'.format(key, value)
             string_file.write(temp)
         string_file.close()
 

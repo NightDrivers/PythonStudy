@@ -57,5 +57,42 @@ class ReSampleTest(unittest.TestCase):
         self.assertEqual(b, ["what", "is", "you", "name"])
 
 
+class FormatRexTest(unittest.TestCase):
+    def test_re(self):
+        rex = '%@|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*[diouxXfcsb]|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
+
+        text = '已选%#i, 打印%-i份, 预计%+i张, 长度% icm efd%0i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%#i', '%-i', '%+i', '% i', '%0i'])
+
+        text = '已选%#12i, 打印%-12i份, 预计%+12i张, 长度% 12icm efd%012i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%#12i', '%-12i', '%+12i', '% 12i', '%012i'])
+
+        text = '已选%#12.i, 打印%-12.i份, 预计%+12.i张, 长度% 12.icm efd%012.i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%#12.i', '%-12.i', '%+12.i', '% 12.i', '%012.i'])
+
+        text = '已选%#1.1i, 打印%-1.1i份, 预计%+1.1i张, 长度% 1.1icm efd%01.1i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%#1.1i', '%-1.1i', '%+1.1i', '% 1.1i', '%01.1i'])
+
+        text = '已选%#.1i, 打印%-.1i份, 预计%+.1i张, 长度% .1icm efd%0.1i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%#.1i', '%-.1i', '%+.1i', '% .1i', '%0.1i'])
+
+        text = '已选%#.i, 打印%-.i份, 预计%+.i张, 长度% .icm efd%0.i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%#.i', '%-.i', '%+.i', '% .i', '%0.i'])
+
+        text = '已选%#*.*i, 打印%-*.*i份, 预计%+*.*i张, 长度% *.*icm efd%0*.*i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%#*.*i', '%-*.*i', '%+*.*i', '% *.*i', '%0*.*i'])
+
+        text = '已选%W, 打印%@份, 预计%T张, 长度%Hcm efd%%i'
+        resuts = re.findall(rex, text, re.RegexFlag.DOTALL)
+        self.assertEqual(resuts, ['%@', '%i'])
+
+
 if __name__ == '__main__':
     unittest.main()

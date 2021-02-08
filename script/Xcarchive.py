@@ -21,8 +21,9 @@ def parse_argv():
     __parse.add_argument("-exportPath", "-ep", help="打包文件导出路径", default="~/Documents/")
     __parse.add_argument("-verbose", "-v", help="打印执行信息", action="store_true")
     __parse.add_argument("-workspace", "-w", help="workspace Name")
+    __parse.add_argument("-configuration", help="build configuration NAME")
     __parse.add_argument("-buildName", "-bn", help="蒲公英应用名称")
-    # __parse.add_argument("--method", "-m", help="导出方式", default="enterprise")
+    __parse.add_argument("-exportMethod", "-m", help="导出方式", default="enterprise")
     return __parse.parse_args()
 
 
@@ -57,13 +58,13 @@ def upload_ipa_to_pgyer(path: str, appname: str = None):
 
 if __name__ == '__main__':
     # 判断用于安装包导出的配置文件是否存在
+    argv = parse_argv()
     home = subprocess.getoutput("cd ~;pwd")
     # ipa导出配置文件，模版见XcarchiveExportOptions.plist
-    xcarchiveExportOptionsPath = home + "/Desktop/config_file/XcarchiveExportOptions.plist"
+    xcarchiveExportOptionsPath = '{0}/Desktop/XcarchiveExport/{1}.plist'.format(home, argv.exportMethod)
     if not os.path.exists(xcarchiveExportOptionsPath):
         print("xcodebuild -exportArchiv导出配置文件不存在: " + xcarchiveExportOptionsPath)
-        sys.exit(1)
-    argv = parse_argv()
+        sys.exit(-1)
     is_verbose = argv.verbose
     # 编译打包生成xcarchive文件
     now = datetime.today()
@@ -74,6 +75,8 @@ if __name__ == '__main__':
     if argv.workspace:
         cmd += "-workspace " + argv.workspace + " "
     cmd += "-scheme " + argv.scheme + " "
+    if argv.configuration:
+        cmd += "-configuration " + argv.configuration + " "
     archivePath += argv.scheme + now.strftime("\\ %Y-%m-%d,\\ %I.%M%p") + ".xcarchive"
     cmd += "-archivePath " + archivePath
     print("archiving...")

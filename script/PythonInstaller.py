@@ -3,6 +3,7 @@ import ShellCommand
 import argparse
 import os
 import shutil
+import subprocess
 
 
 def parse_argv():
@@ -18,9 +19,12 @@ if __name__ == '__main__':
     destination = args.destination
     # file = "Xcarchive.py"
     # destination = "/usr/local/custom/"
-    excutename = file.split(".")[0]
+    work_dir = subprocess.getoutput("pwd")
+    paths = file.split("/")
+    file_name = paths[len(paths)-1]
+    excutename = file_name.split(".")[0]
     flag, output = ShellCommand.excute_shell("pyinstaller -F " + file, True)
     if flag == 0:
-        os.remove(excutename + ".spec")
-        shutil.copyfile("./dist/" + excutename, destination + excutename)
+        os.remove(work_dir + "/" + excutename + ".spec")
+        shutil.copyfile(work_dir + "/" + "./dist/" + excutename, destination + excutename)
         ShellCommand.excute_shell("chmod 755 " + destination + excutename)

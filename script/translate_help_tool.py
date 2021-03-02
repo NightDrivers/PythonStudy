@@ -8,8 +8,8 @@ import re
 
 
 line_localize_rex = '^".?" = ".?";\\n$'
-excel_path = "/Users/ldc/Desktop/翻译/翻译汇总.xlsx"
-format_string_placeholder_rex = '%@|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*[diouxXfcsb]|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
+excel_path = ""
+format_string_placeholder_rex = '%@|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*[diouxXcsb]|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
 
 
 def localize_export(root_path: str, mode_name: str, strings_name: str):
@@ -121,15 +121,20 @@ def parse_argv():
     __parse.add_argument("stringsName", help="翻译文件名称")
     __parse.add_argument("path", help="翻译文件路径")
     __parse.add_argument("-forImport", help="将翻译导入项目", action="store_true")
+    __parse.add_argument("-excelDir", help="翻译Excel文件目录", default="/Users/ldc/Desktop/翻译")
     return __parse.parse_args()
 
 
 if __name__ == '__main__':
     argv = parse_argv()
     mode_name = argv.modeName
+    home_dir = argv.excelDir
+    excel_path = home_dir + "/翻译汇总.xlsx"
     strings_name = argv.stringsName
     root_path = subprocess.getoutput("cd {0};pwd".format(argv.path))
     if argv.forImport:
         localize_import(root_path, mode_name, strings_name)
     else:
+        if not os.path.exists(home_dir):
+            os.mkdir(home_dir)
         localize_export(root_path, mode_name, strings_name)

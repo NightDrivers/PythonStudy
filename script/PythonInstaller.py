@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-import ShellCommand
+from script import ShellCommand
 import argparse
 import os
 import shutil

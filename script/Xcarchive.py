@@ -2,7 +2,6 @@
 import argparse
 # 3.2新出命令行解析模块 https://docs.python.org/3/howto/argparse.html#introducing-positional-arguments
 import subprocess
-import re
 import os
 import sys
 from datetime import datetime
@@ -10,7 +9,7 @@ from datetime import datetime
 import requests_toolbelt
 import requests
 import json
-import ShellCommand
+from script import ShellCommand
 
 
 def parse_argv():

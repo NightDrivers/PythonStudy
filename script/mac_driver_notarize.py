@@ -65,6 +65,7 @@ def get_notarize_info(request_uuid: str, function):
 
 
 def staple_ticket(package: str, notarize_info: dict):
+    # 打开安装包目录
     os.system("open {0}".format(notarize_info["LogFileURL"]))
     cmd = "xcrun stapler staple {0}".format(package)
     flag, result = ShellCommand.excute_shell(cmd, verbose=True)
@@ -111,14 +112,34 @@ if __name__ == '__main__':
     for item in os.listdir(code_dir):
         if item.startswith("."):
             continue
+        item_path = code_dir + "/" + item
+
+        cmd = "chmod 755 {0}".format(item_path)
+        flag, result = ShellCommand.excute_shell(cmd, verbose=True)
+        if flag != 0:
+            print("{0}文件权限修改失败".format(item))
+            exit(-1)
+
         cmd = "codesign --force --verify --verbose " \
               "--sign \"{0}\" " \
               "{1} --deep --options runtime --timestamp"
-        cmd = cmd.format(codesign_identity, code_dir + "/" + item)
+        cmd = cmd.format(codesign_identity, item_path)
         flag, result = ShellCommand.excute_shell(cmd, verbose=True)
         if flag != 0:
             print("{0}代码签名失败".format(item))
             exit(-1)
+
+    # 给脚本文件添加权限
+    script_path = "{0}/scripts"
+    for item in os.listdir(script_path):
+        script_dir = script_path + "/" + item
+        for script_item in script_dir:
+            item_path = script_dir + "/" + script_item
+            cmd = "chmod 755 {0}".format(item_path)
+            flag, result = ShellCommand.excute_shell(cmd, verbose=True)
+            if flag != 0:
+                print("{0}文件权限修改失败".format(item))
+                exit(-1)
 
     install_cmd = "pkgbuild " \
                   "--root roots/ " \

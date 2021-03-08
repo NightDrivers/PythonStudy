@@ -15,3 +15,7 @@ if __name__ == '__main__':
     for item in re.findall(rex, text, re.RegexFlag.DOTALL):
         print(repr(item))
     # os.mkdir("/Users/ldc/Desktop/翻译/翻译")
+
+    items = ["a", "b", "a.ppd", "b.ppd"]
+    for item in [item for item in items if item.endswith(".ppd")]:
+        print(item)

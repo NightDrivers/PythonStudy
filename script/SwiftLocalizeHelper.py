@@ -66,7 +66,7 @@ def add_localized_text(text: str):
     text_count_need_localize = text_count_need_localize + 1
     if not text_need_localize_set.issuperset(temp_set):
         if verbose:
-            print("找到新文本: {0}".format(text))
+            print("找到新的需要翻译文本: {0}".format(text))
         text_need_localize_set.update(temp_set)
 
 
@@ -74,6 +74,8 @@ def add_code_text(text: str):
     global text_in_code_set
     temp_set = {text}
     if not text_in_code_set.issuperset(temp_set):
+        if verbose:
+            print("找到新文本: {0}".format(text))
         text_in_code_set.update(temp_set)
 
 

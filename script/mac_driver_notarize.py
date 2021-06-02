@@ -75,9 +75,8 @@ def staple_ticket(package: str, notarize_info: dict):
 
 if __name__ == '__main__':
 
-    if os.path.exists("build"):
-        shutil.rmtree("build")
-    os.mkdir("build")
+    if not os.path.exists("build"):
+        os.mkdir("build")
 
     argv = parse_argv()
 
@@ -101,6 +100,20 @@ if __name__ == '__main__':
         developer_team = argv.developer_team
 
     home = subprocess.getoutput("pwd")
+
+    src_dir = home + "/filter"
+    for src in src_dir:
+        item_path = "{0}/{1}".format(src_dir, src)
+        if os.path.isdir(item_path):
+            flag, result = ShellCommand.excute_shell("cd {0};make clean;make;make install")
+            if flag != 0:
+                print("{0} make clean;make;make install 失败".format(item_path))
+                exit(-1)
+
+    flag, result = ShellCommand.excute_shell("make clean;make build")
+    if flag != 0:
+        print("{0} make clean;make build 失败".format(home))
+        exit(-1)
 
     ppd_dir = "{0}/roots/Library/Printers/PPDs/Contents/Resources".format(home)
 
@@ -155,7 +168,7 @@ if __name__ == '__main__':
         exit(-1)
 
     uninstall_cmd = "pkgbuild " \
-                    "--root roots/ " \
+                    "--nopayload " \
                     "--scripts scripts/uninstall " \
                     "--identifier {0}.Uninstall " \
                     "--version {1} " \

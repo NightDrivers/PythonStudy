@@ -31,12 +31,12 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
         file = open(path)
         content_dic = dict()
         for line in file:
-            # if re.match(line_localize_rex, line, re.RegexFlag.DOTALL):
             pairs = line.split(' = ')
-            key = pairs[0][1:-1]
-            content_dic[key] = pairs[1][1:-3]
-            if not keys.__contains__(key):
-                keys.update({key})
+            if len(pairs) == 2:
+                key = pairs[0][1:-1]
+                content_dic[key] = pairs[1][1:-3]
+                if not keys.__contains__(key):
+                    keys.update({key})
         print(len(content_dic))
         dic[lang] = content_dic
     # for item in keys:

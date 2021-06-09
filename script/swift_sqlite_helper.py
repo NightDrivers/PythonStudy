@@ -181,7 +181,7 @@ if __name__ == "__main__":
     source_file.write(identation_component_text * 2 + "\n")
     source_file.write(identation_component_text * 2 + "do {\n")
     source_file.write(
-        identation_component_text * 3 + "let update = HFirmwareIgnoreRecord.table.filter(predicate).update(\n".format(class_name))
+        identation_component_text * 3 + "let update = {0}.table.filter(predicate).update(\n".format(class_name))
     for i in range(len(variables)):
         item = variables[i]
         source_file.write(identation_component_text * 4 + "TableColumn.{0} <- self.{0}".format(item[0]))

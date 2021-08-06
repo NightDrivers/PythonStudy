@@ -83,6 +83,7 @@ def staple_ticket(package: str, notarize_info: dict):
     # 打开安装包目录
     os.system("open {0}".format(notarize_info["LogFileURL"]))
     cmd = "xcrun stapler staple {0}".format(package)
+    print(cmd)
     flag, result = excute_shell(cmd, verbose=True)
     if flag != 0:
         exit(-1)
@@ -160,8 +161,8 @@ if __name__ == '__main__':
         cmd = "codesign --force --verify --verbose " \
               "--sign \"{0}\" " \
               "{1} --deep --options runtime --timestamp"
-        print(cmd)
         cmd = cmd.format(codesign_identity, item_path)
+        print(cmd)
         flag, result = excute_shell(cmd, verbose=True)
         if flag != 0:
             print("{0}代码签名失败".format(item))
@@ -214,6 +215,7 @@ if __name__ == '__main__':
         print("Uninstall包导出失败")
         exit(-1)
 
+    result_pkg = "{0}-v{1}.pkg".format(bundle_name, version)
     package_cmd = "productbuild " \
                   "--distribution Distribution.xml " \
                   "--package-path build " \
@@ -221,8 +223,8 @@ if __name__ == '__main__':
                   "--identifier {0} " \
                   "--version {1} " \
                   "--sign \"{2}\" " \
-                  "build/{3}-v{1}.pkg"
-    package_cmd = package_cmd.format(identity, version, install_sign_identity, bundle_name)
+                  "build/{3}"
+    package_cmd = package_cmd.format(identity, version, install_sign_identity, result_pkg)
     print(package_cmd)
     flag, result = excute_shell(package_cmd, verbose=True)
     if flag != 0:
@@ -234,9 +236,9 @@ if __name__ == '__main__':
                        "--primary-bundle-id {0} " \
                        "--username {1} " \
                        "--password {2} " \
-                       "--file build/{3}-v{4}.pkg " \
-                       "-itc_provider {5} &> tmp"
-        notarize_cmd = notarize_cmd.format(identity, developer_name, developer_password, bundle_name, version,
+                       "--file build/{3} " \
+                       "-itc_provider {4} &> tmp"
+        notarize_cmd = notarize_cmd.format(identity, developer_name, developer_password, result_pkg,
                                            developer_team)
         print(notarize_cmd)
         flag, result = excute_shell(notarize_cmd, verbose=True)
@@ -256,4 +258,4 @@ if __name__ == '__main__':
             exit(-1)
 
         get_notarize_info(request_uuid,
-                          lambda info: staple_ticket("build/{0}-v{1}.pkg".format(bundle_name, version), info))
+                          lambda info: staple_ticket("build/{0}".format(result_pkg), info))

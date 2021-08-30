@@ -111,10 +111,10 @@ if __name__ == "__main__":
 
     # all
     source_file.write("\n")
-    source_file.write(identation_component_text + "static func all() -> [{0}] ".format(class_name) + "{\n")
+    source_file.write(identation_component_text + "static func all(_ predicate: Expression<Bool> = Expression<Bool>.init(value: true)) -> [{0}] ".format(class_name) + "{\n")
     source_file.write(identation_component_text * 2 + "\n")
     source_file.write(identation_component_text * 2 + "do {\n")
-    source_file.write(identation_component_text * 3 + "let items = try {0}.prepare({1}.table)\n".format(connection, class_name))
+    source_file.write(identation_component_text * 3 + "let items = try {0}.prepare({1}.table.filter(predicate))\n".format(connection, class_name))
     source_file.write(identation_component_text * 3 + "let models = items.map({ " + "row -> {0} in\n".format(class_name))
     source_file.write(identation_component_text * 4 + "let item = {0}()\n".format(class_name))
     for item in variables:
@@ -149,22 +149,9 @@ if __name__ == "__main__":
     source_file.write(identation_component_text * 2 + "}\n")
     source_file.write(identation_component_text + "}\n")
 
-    # delete all
-    source_file.write("\n")
-    source_file.write(identation_component_text + "static func deleteAll() throws {\n")
-    source_file.write(identation_component_text * 2 + "\n")
-    source_file.write(identation_component_text * 2 + "do {\n")
-    source_file.write(identation_component_text * 3 + "let delete = {0}.table.delete()\n".format(class_name))
-    source_file.write(identation_component_text * 3 + "try {0}.run(delete)\n".format(connection))
-    source_file.write(identation_component_text * 2 + "} catch {\n")
-    source_file.write(identation_component_text * 3 + "print(error)\n")
-    source_file.write(identation_component_text * 3 + "throw error\n")
-    source_file.write(identation_component_text * 2 + "}\n")
-    source_file.write(identation_component_text + "}\n")
-
     # delete
     source_file.write("\n")
-    source_file.write(identation_component_text + "func delete(_ predicate: Expression<Bool>) throws {\n")
+    source_file.write(identation_component_text + "static func delete(_ predicate: Expression<Bool> = Expression<Bool>.init(value: true)) throws {\n")
     source_file.write(identation_component_text * 2 + "\n")
     source_file.write(identation_component_text * 2 + "do {\n")
     source_file.write(identation_component_text * 3 + "let delete = {0}.table.filter(predicate).delete()\n".format(class_name))
@@ -177,7 +164,7 @@ if __name__ == "__main__":
 
     # update
     source_file.write("\n")
-    source_file.write(identation_component_text + "func update(_ predicate: Expression<Bool>) throws {\n")
+    source_file.write(identation_component_text + "func update(_ predicate: Expression<Bool> = Expression<Bool>.init(value: true)) throws {\n")
     source_file.write(identation_component_text * 2 + "\n")
     source_file.write(identation_component_text * 2 + "do {\n")
     source_file.write(
@@ -199,7 +186,7 @@ if __name__ == "__main__":
 
     # exist
     source_file.write("\n")
-    source_file.write(identation_component_text + "static func exist(_ predicate: Expression<Bool>) -> Bool {\n")
+    source_file.write(identation_component_text + "static func exist(_ predicate: Expression<Bool> = Expression<Bool>.init(value: true)) -> Bool {\n")
     source_file.write(identation_component_text * 2 + "\n")
     source_file.write(identation_component_text * 2 + "do {\n")
     source_file.write(
@@ -213,7 +200,7 @@ if __name__ == "__main__":
 
     # first item
     source_file.write("\n")
-    source_file.write(identation_component_text + "static func firstItem(_ predicate: Expression<Bool>) -> {0}? ".format(class_name) + "{\n")
+    source_file.write(identation_component_text + "static func firstItem(_ predicate: Expression<Bool> = Expression<Bool>.init(value: true)) -> {0}? ".format(class_name) + "{\n")
     source_file.write(identation_component_text * 2 + "\n")
     source_file.write(identation_component_text * 2 + "do {\n")
     source_file.write(identation_component_text * 3 + "let items = try {0}.prepare({1}.table.filter(predicate))\n".format(connection, class_name))

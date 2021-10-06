@@ -6,6 +6,7 @@ import argparse
 import uuid
 import re
 from script import ShellCommand
+import py_compile
 
 
 if __name__ == '__main__':

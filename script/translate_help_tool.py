@@ -108,11 +108,10 @@ def localize_import(root_path: str, mode_name: str, strings_name: str):
                     value = ""
                 if value != "":
                     key_placeholder_list = re.findall(format_string_placeholder_rex, key, re.RegexFlag.DOTALL)
-                    if len(key_placeholder_list) != 0:
-                        value_placeholder_list = re.findall(format_string_placeholder_rex, value, re.RegexFlag.DOTALL)
-                        if key_placeholder_list != value_placeholder_list:
-                            print("占位符不匹配 模块: {0} 位置: 第{1}行 语言: {2}".format(mode_name, j, lang))
-                            value = ""
+                    value_placeholder_list = re.findall(format_string_placeholder_rex, value, re.RegexFlag.DOTALL)
+                    if key_placeholder_list != value_placeholder_list:
+                        print("占位符不匹配 模块: {0} 位置: 第{1}行 语言: {2}".format(mode_name, j, lang))
+                        value = ""
                 temp = '"{0}" = "{1}";\n'.format(key, value)
                 string_file.write(temp)
             string_file.close()

@@ -47,39 +47,46 @@ if __name__ == "__main__":
                     continue
                 variable_declaration_codes.append(item)
                 temp = item[8:-1]
-                temp = temp.replace(" ", "")
-                temp = "".join(re.split("//.+", temp))
-                if temp.__contains__("="):
-                    if temp.__contains__(":"):
-                        temp = temp.split("=")[0]
-                        items = temp.split(":")
-                        variables.append((items[0], items[1]))
-                    else:
-                        items = temp.split("=")
-                        variable_type = ""
-                        if re.match("\\d+", items[1]) is not None:
-                            variable_type = "Int"
-                        elif re.match("\".?\"", items[1], re.RegexFlag.DOTALL):
-                            variable_type = "String"
-                        elif re.match(".+\\(\\)", items[1], re.RegexFlag.DOTALL):
-                            variable_type = items[1][:-2]
-                        elif re.match("true|false", items[1]):
-                            variable_type = "Bool"
-                        else:
-                            print("暂不支持的变量声明格式: {0}".format(item))
-                            continue
-                        variables.append((items[0], variable_type))
-                elif temp.__contains__(":"):
+            elif item.startswith(identation_component_text + "@objc var "):
+                print(repr(item))
+                if item.endswith("{\n"):
+                    continue
+                variable_declaration_codes.append(item)
+                temp = item[14:-1]
+            else:
+                continue
+            temp = temp.replace(" ", "")
+            temp = "".join(re.split("//.+", temp))
+            if temp.__contains__("="):
+                if temp.__contains__(":"):
+                    temp = temp.split("=")[0]
                     items = temp.split(":")
                     variables.append((items[0], items[1]))
                 else:
-                    print("暂不支持的变量声明格式: {0}".format(item))
-                    continue
+                    items = temp.split("=")
+                    variable_type = ""
+                    if re.match("\\d+", items[1]) is not None:
+                        variable_type = "Int"
+                    elif re.match("\".?\"", items[1], re.RegexFlag.DOTALL):
+                        variable_type = "String"
+                    elif re.match(".+\\(\\)", items[1], re.RegexFlag.DOTALL):
+                        variable_type = items[1][:-2]
+                    elif re.match("true|false", items[1]):
+                        variable_type = "Bool"
+                    else:
+                        print("暂不支持的变量声明格式: {0}".format(item))
+                        continue
+                    variables.append((items[0], variable_type))
+            elif temp.__contains__(":"):
+                items = temp.split(":")
+                variables.append((items[0], items[1]))
             else:
+                print("暂不支持的变量声明格式: {0}".format(item))
                 continue
 
     source_file.close()
     if len(variables) == 0:
+        print("没有找到声明的变量")
         exit(0)
 
     source_file = open(source_file_path, "wt")

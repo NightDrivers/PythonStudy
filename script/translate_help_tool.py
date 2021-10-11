@@ -9,7 +9,7 @@ import re
 
 line_localize_rex = '^".?" = ".?";\\n$'
 excel_path = ""
-format_string_placeholder_rex = '%@|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*[diouxXcsb]|%[#\\-+ 0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
+format_string_placeholder_rex = '%@|%[#\\-+0]?[0-9*]*\\.?[0-9*]*[diouxXcsb]|%[#\\-+0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
 
 
 def localize_export(root_path: str, mode_name: str, strings_name: str):

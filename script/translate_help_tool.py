@@ -10,6 +10,7 @@ import re
 line_localize_rex = '^".?" = ".?";\\n$|.? = ".?";\\n$'
 excel_path = ""
 format_string_placeholder_rex = '%@|%[#\\-+0]?[0-9*]*\\.?[0-9*]*[diouxXcsb]|%[#\\-+0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
+key_discard_placeholders = ["", "不要改我"]
 
 
 def load_localize_content(strings_file_path: str):
@@ -69,6 +70,7 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
     langs_sorted.insert(0, "zh-Hans")
     langs_sorted.insert(0, 'key')
 
+    # 将翻译内容写入excel
     for i in range(0, len(langs_sorted)):
         for j in range(1, len(keys_sorted) + 2):
             temp_lang = langs_sorted[i]
@@ -83,8 +85,12 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
                     temp_dict = dic[temp_lang]
                     if temp_dict.keys().__contains__(key):
                         cell.value = temp_dict[key]
+                    elif key.startswith('"'):
+                        cell.value = ""
                     else:
-                        cell.value = key
+                        # InfoPlist翻译，缺少某个key，做个标记，提醒翻译人员不要修改此项
+                        # 同时作为导入时不需要翻译的标记
+                        cell.value = "不要改我"
             cell.alignment = Alignment(horizontal='center', vertical='center', wrapText=True)
 
     wb.save(excel_path)
@@ -127,7 +133,8 @@ def localize_import(root_path: str, mode_name: str, strings_name: str, not_wrap_
                     if key_placeholder_list != value_placeholder_list:
                         print("占位符不匹配 模块: {0} 位置: 第{1}行 语言: {2}".format(mode_name, j, lang))
                         value = ""
-                if (key == value or key == "") and not_wrap_key:
+                if (key == value or key_discard_placeholders.__contains__(value)) and not_wrap_key:
+                    # 当不需要引号包裹时，翻译为空或key时代表这条不需要翻译
                     continue
                 content_dict[key] = value
             # 将翻译文本写入strings文件

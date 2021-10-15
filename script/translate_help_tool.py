@@ -7,9 +7,23 @@ from openpyxl.styles import Alignment
 import re
 
 
-line_localize_rex = '^".?" = ".?";\\n$'
+line_localize_rex = '^".?" = ".?";\\n$|.? = ".?";\\n$'
 excel_path = ""
 format_string_placeholder_rex = '%@|%[#\\-+0]?[0-9*]*\\.?[0-9*]*[diouxXcsb]|%[#\\-+0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
+
+
+def load_localize_content(strings_file_path: str):
+    content = dict()
+    with open(strings_file_path) as file:
+        for line in file:
+            pairs = line.split(' = ')
+            if len(pairs) == 2:
+                if pairs[0].startswith('"'):
+                    key = pairs[0][1:-1]
+                else:
+                    key = pairs[0]
+                content[key] = pairs[1][1:-3]
+    return content
 
 
 def localize_export(root_path: str, mode_name: str, strings_name: str):
@@ -18,7 +32,7 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
     for item in os.listdir(root_path):
         if item.endswith('.lproj'):
             temp = item[:-6]
-            if temp != 'Base' and temp != 'zh-Hans':
+            if temp != 'Base':
                 dirs.append(temp)
     if len(dirs) == 0:
         print('没有找到翻译相关文件')
@@ -26,22 +40,16 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
     print(dirs)
     dic = dict()
     keys = set()
+
     for lang in dirs:
         path = '{0}/{1}.lproj/{2}.strings'.format(root_path, lang, strings_name)
-        file = open(path)
-        content_dic = dict()
-        for line in file:
-            pairs = line.split(' = ')
-            if len(pairs) == 2:
-                key = pairs[0][1:-1]
-                content_dic[key] = pairs[1][1:-3]
-                if not keys.__contains__(key):
-                    keys.update({key})
-        print(len(content_dic))
+        content_dic = load_localize_content(path)
+        print("翻译文本数量 语言 {0}: {1}".format(lang, len(content_dic)))
+        keys = keys.union(set(content_dic.keys()))
         dic[lang] = content_dic
     # for item in keys:
     #     print(item)
-    print(len(keys))
+    print("总的翻译文本数量: {0}".format(len(keys)))
     keys_sorted = sorted(keys)
 
     if os.path.exists(excel_path):
@@ -57,7 +65,10 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
     ws.sheet_format.defaultColWidth = 50
 
     langs_sorted = sorted(dirs)
-    langs_sorted.insert(0, '中文')
+    langs_sorted.remove("zh-Hans")
+    langs_sorted.insert(0, "zh-Hans")
+    langs_sorted.insert(0, 'key')
+
     for i in range(0, len(langs_sorted)):
         for j in range(1, len(keys_sorted) + 2):
             temp_lang = langs_sorted[i]
@@ -70,22 +81,24 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
                     cell.value = key
                 else:
                     temp_dict = dic[temp_lang]
-                    cell.value = temp_dict[key]
+                    if temp_dict.keys().__contains__(key):
+                        cell.value = temp_dict[key]
+                    else:
+                        cell.value = key
             cell.alignment = Alignment(horizontal='center', vertical='center', wrapText=True)
 
     wb.save(excel_path)
 
 
-def localize_import(root_path: str, mode_name: str, strings_name: str):
+def localize_import(root_path: str, mode_name: str, strings_name: str, not_wrap_key: bool):
     global excel_path, format_string_placeholder_rex
     if not os.path.exists(excel_path):
-        print('翻译文件不存在')
+        print('翻译文件不存在: {0}'.format(excel_path))
         exit(-1)
     wb = openpyxl.load_workbook(filename=excel_path)
     if not wb.sheetnames.__contains__(mode_name):
-        print('未找到对应模块')
+        print('翻译文件未找到模块: {0}'.format(mode_name))
         exit(-1)
-    # ws = wb.create_sheet()
     ws = wb[mode_name]
     print('max row {0}'.format(ws.max_row))
     print('max column {0}'.format(ws.max_column))
@@ -98,7 +111,9 @@ def localize_import(root_path: str, mode_name: str, strings_name: str):
             continue
         string_file_path = '{0}/{1}.lproj/{2}.strings'.format(root_path, lang, strings_name)
         if os.path.exists(string_file_path):
-            string_file = open(string_file_path, 'wt')
+            # 读取原有翻译文本
+            content_dict = load_localize_content(string_file_path)
+            # 添加excel中的翻译文本
             for j in range(2, max_row + 1):
                 key = ws.cell(row=j, column=1).value
                 if key is None:
@@ -112,9 +127,19 @@ def localize_import(root_path: str, mode_name: str, strings_name: str):
                     if key_placeholder_list != value_placeholder_list:
                         print("占位符不匹配 模块: {0} 位置: 第{1}行 语言: {2}".format(mode_name, j, lang))
                         value = ""
-                temp = '"{0}" = "{1}";\n'.format(key, value)
-                string_file.write(temp)
-            string_file.close()
+                if (key == value or key == "") and not_wrap_key:
+                    continue
+                content_dict[key] = value
+            # 将翻译文本写入strings文件
+            with open(string_file_path, 'wt') as string_file:
+                sorted_keys = sorted(content_dict.keys())
+                for key in sorted_keys:
+                    value = content_dict[key]
+                    if not not_wrap_key:
+                        temp = '"{0}" = "{1}";\n'.format(key, value)
+                    else:
+                        temp = '{0} = "{1}";\n'.format(key, value)
+                    string_file.write(temp)
 
 
 def parse_argv():
@@ -123,6 +148,7 @@ def parse_argv():
     __parse.add_argument("stringsName", help="翻译文件名称")
     __parse.add_argument("path", help="翻译文件路径")
     __parse.add_argument("-forImport", help="将翻译导入项目", action="store_true")
+    __parse.add_argument("-notWrapKey", help="不使用引号包裹key值", action="store_true")
     __parse.add_argument("-excelDir", help="翻译Excel文件目录", default="/Users/ldc/Desktop/翻译")
     return __parse.parse_args()
 
@@ -135,7 +161,7 @@ if __name__ == '__main__':
     strings_name = argv.stringsName
     root_path = subprocess.getoutput("cd {0};pwd".format(argv.path))
     if argv.forImport:
-        localize_import(root_path, mode_name, strings_name)
+        localize_import(root_path, mode_name, strings_name, argv.notWrapKey)
     else:
         if not os.path.exists(home_dir):
             os.mkdir(home_dir)

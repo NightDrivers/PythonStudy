@@ -15,17 +15,20 @@ white_list_place_holder = str(uuid.uuid1())
 white_prefix_rex = 'HLog.share.write\\(|print\\('
 verbose = True
 codeSuffix = ".swift"
+exceptPaths = []
 
 
 def parse_argv():
-    __parse = argparse.ArgumentParser()
-    __parse.add_argument("project", help="需要导出翻译文本的项目文件路径")
-    __parse.add_argument("localizedStrings", help="需要导入翻译的文件路径")
-    __parse.add_argument("-verbose", help="打印执行信息", action="store_true")
-    __parse.add_argument("-textSuffix", help="项目翻译文本代码后缀", default="\\.localized")
-    __parse.add_argument("-codeSuffix", help="代码文件后缀", default=".swift")
-    __parse.add_argument("-ignorePrefix", help="忽略跟随该前缀的文本", default=None)
-    return __parse.parse_args()
+    __parser = argparse.ArgumentParser()
+    # __parser.add_argument("project", help="需要导出翻译文本的项目文件路径")
+    __parser.add_argument("localizedStrings", help="需要导入翻译的文件路径")
+    __parser.add_argument("-verbose", help="打印执行信息", action="store_true")
+    __parser.add_argument("-textSuffix", help="项目翻译文本代码后缀", default="\\.localized")
+    __parser.add_argument("-codeSuffix", help="代码文件后缀", default=".swift")
+    __parser.add_argument("-ignorePrefix", help="忽略跟随该前缀的文本", default=None)
+    __parser.add_argument("--paths", nargs="+", help="代码查找路径", required=True)
+    __parser.add_argument("--exceptPaths", nargs="+", help="除外路径", required=False)
+    return __parser.parse_args()
 
 
 def find_text(path: str, rex: str, function):
@@ -46,7 +49,7 @@ def find_file(path: str, rex: str, function):
     for item in file_list:
         path_new = path + "/" + item
         if os.path.isdir(path_new):
-            if item.lower() == "test":
+            if exceptPaths.__contains__(path_new):
                 continue
             else:
                 find_file(path_new, rex, function)
@@ -83,20 +86,30 @@ if __name__ == "__main__":
     argv = parse_argv()
     verbose = argv.verbose
     codeSuffix = argv.codeSuffix
+    paths = argv.paths
+    exceptPaths = argv.exceptPaths
+    if exceptPaths is None:
+        exceptPaths = []
+    home = subprocess.getoutput("pwd")
+    exceptPaths = list(map(lambda temp: subprocess.getoutput("cd {0};pwd".format(temp)), exceptPaths))
+    print(exceptPaths)
 
     localized_strings_path = argv.localizedStrings
     if not os.path.isfile(localized_strings_path):
-        localized_strings_path = subprocess.getoutput("pwd") + "/" + localized_strings_path
+        localized_strings_path = home + "/" + localized_strings_path
         if not os.path.isfile(localized_strings_path):
             print("翻译文件不存在")
             exit(1)
 
     if argv.ignorePrefix is not None:
         white_prefix_rex = '{0}|{1}'.format(white_prefix_rex, argv.ignorePrefix)
-    project_path = subprocess.getoutput("cd {0};pwd".format(argv.project))
-    localize_rex = '(?<!{0})"[^"]+?"(?={1})'.format(white_list_place_holder, argv.textSuffix)
-    find_file(project_path, localize_rex, lambda result: add_localized_text(result))
-    find_file(project_path, '(?<!{0})"[^"]+?"'.format(white_list_place_holder), lambda result: add_code_text(result))
+
+    for path in paths:
+        project_path = subprocess.getoutput("cd {0};pwd".format(path))
+        localize_rex = '(?<!{0})"[^"]+?"(?={1})'.format(white_list_place_holder, argv.textSuffix)
+        find_file(project_path, localize_rex, lambda result: add_localized_text(result))
+        find_file(project_path, '(?<!{0})"[^"]+?"'.format(white_list_place_holder),
+                  lambda result: add_code_text(result))
 
     print("---------------")
     print("代码文件数量: {0}".format(file_count))

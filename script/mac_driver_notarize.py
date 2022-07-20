@@ -18,6 +18,17 @@ developer_name = "ios@prttech.com"
 developer_password = "solr-vnoz-tzpu-pdmr"
 developer_team = "976NLVLZMW"
 
+# 删除build文件
+# 遍历/filter文件下目录使用make编译执行文件
+# 当前目录make build将上一次生成二进制文件复制到/roots/usr/libexec/cups/filter目录
+# ppd文件压缩
+# 遍历/roots/usr/libexec/cups/filter文件夹下执行文件，添加权限，代码签名
+# /scripts目录遍历脚本，添加权限
+# pkgbuild生成安装包->pkgbuild生成卸载安装包
+# productbuild打包并签名
+# xcrun请求包认证
+# 循环查询认证结果
+
 
 def excute_shell(command: str, verbose: bool = False):
     params = {"text": True}

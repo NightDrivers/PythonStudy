@@ -6,13 +6,13 @@ import argparse
 from openpyxl.styles import Alignment
 import re
 
-
 line_localize_rex = '^".?" = ".?";\\n$|.? = ".?";\\n$'
 excel_path = ""
 format_string_placeholder_rex = '%@|%[#\\-+0]?[0-9*]*\\.?[0-9*]*[diouxXcsb]|%[#\\-+0]?[0-9*]*\\.?[0-9*]*L?[fFeEgGaA]'
 key_discard_placeholders = ["", "不要改我"]
 
 
+# 加载翻译文件内容
 def load_localize_content(strings_file_path: str):
     content = dict()
     with open(strings_file_path) as file:
@@ -66,8 +66,11 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
     ws.sheet_format.defaultColWidth = 50
 
     langs_sorted = sorted(dirs)
-    langs_sorted.remove("zh-Hans")
-    langs_sorted.insert(0, "zh-Hans")
+    try:
+        langs_sorted.remove("zh-Hans")
+        langs_sorted.insert(0, "zh-Hans")
+    except Exception as e:
+        print("zh-Hans not exist {e}")
     langs_sorted.insert(0, 'key')
 
     # 将翻译内容写入excel
@@ -111,11 +114,12 @@ def localize_import(root_path: str, mode_name: str, strings_name: str, not_wrap_
     max_row = ws.max_row
     max_column = ws.max_column
 
-    for i in range(2, max_column+1):
+    for i in range(2, max_column + 1):
         lang = ws.cell(row=1, column=i).value
         if lang is None or len(lang) == 0:
             continue
         string_file_path = '{0}/{1}.lproj/{2}.strings'.format(root_path, lang, strings_name)
+        # print(string_file_path)
         if os.path.exists(string_file_path):
             # 读取原有翻译文本
             content_dict = load_localize_content(string_file_path)
@@ -128,8 +132,15 @@ def localize_import(root_path: str, mode_name: str, strings_name: str, not_wrap_
                 if value is None:
                     value = ""
                 if value != "":
+                    # print(value)
+                    # print(len(value))
                     key_placeholder_list = re.findall(format_string_placeholder_rex, key, re.RegexFlag.DOTALL)
-                    value_placeholder_list = re.findall(format_string_placeholder_rex, value, re.RegexFlag.DOTALL)
+                    if isinstance(value, str):
+                        value_placeholder_list = re.findall(format_string_placeholder_rex, value, re.RegexFlag.DOTALL)
+                    else:
+                        print("非字符串内容: {0} {1} {2}".format(j, lang, value))
+                        value_placeholder_list = re.findall(format_string_placeholder_rex, "{0}".format(value),
+                                                            re.RegexFlag.DOTALL)
                     if key_placeholder_list != value_placeholder_list:
                         print("占位符不匹配 模块: {0} 位置: 第{1}行 语言: {2}".format(mode_name, j, lang))
                         value = ""
@@ -137,6 +148,7 @@ def localize_import(root_path: str, mode_name: str, strings_name: str, not_wrap_
                     # 当不需要引号包裹时，翻译为空或key时代表这条不需要翻译
                     continue
                 content_dict[key] = value
+            # print(string_file_path)
             # 将翻译文本写入strings文件
             with open(string_file_path, 'wt') as string_file:
                 sorted_keys = sorted(content_dict.keys())

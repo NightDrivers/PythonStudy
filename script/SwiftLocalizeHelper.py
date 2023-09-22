@@ -36,7 +36,9 @@ def find_text(path: str, rex: str, function):
     file = open(path)
     for line in file:
         temp = line.replace('\\"', place_holder)
+        # print(white_prefix_rex)
         temp = white_list_place_holder.join(re.split(white_prefix_rex, temp, re.RegexFlag.DOTALL))
+        # print(temp)
         results = re.findall(rex, temp, re.RegexFlag.DOTALL)
         for result in results:
             result_txt = result.replace(place_holder, '\\"')
@@ -65,7 +67,7 @@ def find_file(path: str, rex: str, function):
 
 def add_localized_text(text: str):
     global text_count_need_localize, text_need_localize_set
-    temp_set = {text}
+    temp_set = {text[1:-1]}
     text_count_need_localize = text_count_need_localize + 1
     if not text_need_localize_set.issuperset(temp_set):
         if verbose:
@@ -75,7 +77,7 @@ def add_localized_text(text: str):
 
 def add_code_text(text: str):
     global text_in_code_set
-    temp_set = {text}
+    temp_set = {text[1:-1]}
     if not text_in_code_set.issuperset(temp_set):
         if verbose:
             print("找到新文本: {0}".format(text))
@@ -106,9 +108,9 @@ if __name__ == "__main__":
 
     for path in paths:
         project_path = subprocess.getoutput("cd {0};pwd".format(path))
-        localize_rex = '(?<!{0})"[^"]+?"(?={1})'.format(white_list_place_holder, argv.textSuffix)
+        localize_rex = '(?<!{0})"[^"]+?"(?={1})|(?<!{0})\'[^\']+?\'(?={1})'.format(white_list_place_holder, argv.textSuffix)
         find_file(project_path, localize_rex, lambda result: add_localized_text(result))
-        find_file(project_path, '(?<!{0})"[^"]+?"'.format(white_list_place_holder),
+        find_file(project_path, '(?<!{0})"[^"]+?"|(?<!{0})\'[^\']+?\''.format(white_list_place_holder),
                   lambda result: add_code_text(result))
 
     print("---------------")
@@ -119,7 +121,7 @@ if __name__ == "__main__":
     text_without_localize_set = text_in_code_set.difference(text_need_localize_set)
     print("不需要翻译的文本数量: {0}".format(len(text_without_localize_set)))
     for item in text_without_localize_set:
-        if not re.match('"[\\x20\\x21\\x23-\\x7e]+"', item, re.RegexFlag.DOTALL):
+        if not re.match('[\\x20-\\x7e]+', item, re.RegexFlag.DOTALL):
             print("不需要翻译的文本: {0}".format(item))
     if not text_in_code_set.issuperset(text_need_localize_set):
         _temp = text_need_localize_set.difference(text_in_code_set)
@@ -138,9 +140,9 @@ if __name__ == "__main__":
         items = item.split(" = ")
         if len(items) != 2:
             continue
-        temp = items[0]
+        temp = items[0][1:-1]
         temp_set = {temp}
-        dic[temp] = items[1]
+        dic[temp] = items[1][1:-3]
         if strings_set.issuperset(temp_set):
             print("翻译文件重复的翻译文本: {0}".format(temp))
         else:
@@ -163,12 +165,12 @@ if __name__ == "__main__":
     for item in text_set_more:
         print("添加缺少的翻译文本: {0}".format(item))
         keys.append(item)
-        dic[item] = "\"\";\n"
+        dic[item] = ""
 
     strings_file_write = open(localized_strings_path, mode="wt")
     keys.sort()
     for key in keys:
-        strings_file_write.write(key + " = " + dic[key])
+        strings_file_write.write('"{0}" = "{1}";\n'.format(key, dic[key]))
     strings_file_write.close()
 
 

@@ -23,16 +23,18 @@ def parse_argv():
     __parse.add_argument("-configuration", help="build configuration NAME")
     __parse.add_argument("-buildName", "-bn", help="蒲公英应用名称")
     __parse.add_argument("-exportMethod", "-m", help="导出方式", default="enterprise")
+    __parse.add_argument("-pgyerDomain", "-pd", help="蒲公英域名", default="www.xcxwo.com")
     return __parse.parse_args()
 
 
-def upload_ipa_to_pgyer(path: str, appname: str = None):
+def upload_ipa_to_pgyer(domain: str, path: str, appname: str = None):
     """
     将ipa包发送至蒲公英，接口文档
     https://www.pgyer.com/doc/view/api#uploadApp
+    https://www.xcxwo.com/doc/view/api#uploadApp
     """
     apikey = "4b704ea49aeb3d2647fc5e32a6b7de63"
-    url = "https://www.pgyer.com/apiv2/app/upload"
+    url = "https://{0}/apiv2/app/upload".format(str)
     encoder = requests_toolbelt.multipart.MultipartEncoder(fields={
         'file': (path, open(path, "rb"))
     })
@@ -50,7 +52,7 @@ def upload_ipa_to_pgyer(path: str, appname: str = None):
     # print(response.text)
     d = json.loads(response.text)
     if d["code"] == 0:
-        return 0, "https://www.pgyer.com/" + d["data"]["buildShortcutUrl"]
+        return 0, "https://${0}/".format(domain) + d["data"]["buildShortcutUrl"]
     else:
         return -1, d["message"]
 
@@ -97,6 +99,7 @@ if __name__ == '__main__':
     cmd += "-archivePath " + archivePath + " "
     cmd += "-exportPath " + exportPath + " "
     cmd += "-exportOptionsPlist " + xcarchiveExportOptionsPath
+    print(cmd)
     print("exporting...")
     flag, output = ShellCommand.excute_shell(cmd, is_verbose)
     if argv.deleteArchive:
@@ -110,6 +113,7 @@ if __name__ == '__main__':
     if not argv.localIpa:
         print("uploading ipa...")
         result = upload_ipa_to_pgyer(
+            argv.pgyerDomain,
             subprocess.getoutput("cd " + argv.exportPath + ";pwd") + "/" +
             argv.scheme + now.strftime(" %Y-%m-%d %H-%M-%S/") + argv.scheme + ".ipa",
             argv.buildName

@@ -251,22 +251,41 @@ if __name__ == '__main__':
                        "-itc_provider {4} &> tmp"
         notarize_cmd = notarize_cmd.format(identity, developer_name, developer_password, result_pkg,
                                            developer_team)
+
+        notarize_cmd = "xcrun notarytool submit {0} " \
+                       '--keychain-profile "notarytool-password" ' \
+                       '--wait'
+        notarize_cmd = notarize_cmd.format(result_pkg)
         print(notarize_cmd)
         flag, result = excute_shell(notarize_cmd, verbose=True)
         if flag != 0:
             print("包认证失败")
             exit(-1)
 
-        file = open("tmp")
-        request_uuid = ""
-        for item in file:
-            if item.startswith("RequestUUID = "):
-                items = item.split(" = ")
-                print(items)
-                request_uuid = items[1][:-1]
-        if len(request_uuid) == 0:
-            print("RequestUUID not found in tmp")
-            exit(-1)
+        pairs = re.findall("\\w[^\\n]*?: [^\\n]+", result, re.RegexFlag.DOTALL)
+        dic = dict()
+        for pair in pairs:
+            items = pair.split(": ")
+            dic[items[0]] = items[1]
+        status = dic["status"]
+        request_uuid = dic["id"]
 
-        get_notarize_info(request_uuid,
-                          lambda info: staple_ticket("build/{0}".format(result_pkg), info))
+        print("status: {0}".format(status))
+        print("id: {0}".format(request_uuid))
+
+        if status is None:
+            print("notarization info Status not found")
+            exit(-1)
+        else:
+            if status == "Accepted":
+                if len(request_uuid) == 0:
+                    print("RequestUUID not found in tmp")
+                    exit(-1)
+                else:
+                    cmd = "xcrun stapler staple {0}".format(result_pkg)
+                    print(cmd)
+                    flag, result = excute_shell(cmd, verbose=True)
+                    if flag != 0:
+                        exit(-1)
+            else:
+                exit(-1)

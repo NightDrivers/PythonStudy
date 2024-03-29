@@ -243,19 +243,13 @@ if __name__ == '__main__':
         exit(-1)
 
     if not argv.skip_notarize:
-        notarize_cmd = "xcrun altool --notarize-app " \
-                       "--primary-bundle-id {0} " \
-                       "--username {1} " \
-                       "--password {2} " \
-                       "--file build/{3} " \
-                       "-itc_provider {4} &> tmp"
-        notarize_cmd = notarize_cmd.format(identity, developer_name, developer_password, result_pkg,
-                                           developer_team)
-
+        pkg_path = 'build/{0}'.format(result_pkg)
+        # xcrun notarytool store-credentials notarytool-password
+        # 钥匙串配置可以通过这个命令先写入钥匙串，会触发交互输入密码等信息
         notarize_cmd = "xcrun notarytool submit {0} " \
                        '--keychain-profile "notarytool-password" ' \
                        '--wait'
-        notarize_cmd = notarize_cmd.format(result_pkg)
+        notarize_cmd = notarize_cmd.format(pkg_path)
         print(notarize_cmd)
         flag, result = excute_shell(notarize_cmd, verbose=True)
         if flag != 0:
@@ -282,7 +276,7 @@ if __name__ == '__main__':
                     print("RequestUUID not found in tmp")
                     exit(-1)
                 else:
-                    cmd = "xcrun stapler staple {0}".format(result_pkg)
+                    cmd = "xcrun stapler staple {0}".format(pkg_path)
                     print(cmd)
                     flag, result = excute_shell(cmd, verbose=True)
                     if flag != 0:

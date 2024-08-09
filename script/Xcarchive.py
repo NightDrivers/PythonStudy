@@ -40,6 +40,7 @@ def upload_ipa_to_pgyer(domain: str, path: str, appname: str = None):
     })
     params = {
         '_api_key': apikey,
+        # 'file': (path, open(path, "rb"))
     }
     if appname is not None:
         params["buildName"] = appname

@@ -27,7 +27,7 @@ def load_localize_content(strings_file_path: str):
     return content
 
 
-def localize_export(root_path: str, mode_name: str, strings_name: str):
+def localize_export(root_path: str, mode_name: str, strings_name: str, sortByEmptyContent: bool):
     global excel_path
     dirs = []
     for item in os.listdir(root_path):
@@ -41,17 +41,32 @@ def localize_export(root_path: str, mode_name: str, strings_name: str):
     print(dirs)
     dic = dict()
     keys = set()
-
+    keys_weight_dic = dict()
     for lang in dirs:
         path = '{0}/{1}.lproj/{2}.strings'.format(root_path, lang, strings_name)
         content_dic = load_localize_content(path)
         print("翻译文本数量 语言 {0}: {1}".format(lang, len(content_dic)))
+        if sortByEmptyContent:
+            for key in content_dic.keys():
+                value = content_dic[key]
+                if not keys_weight_dic.__contains__(key):
+                    if len(value) == 0:
+                        keys_weight_dic[key] = 1
+                    else:
+                        keys_weight_dic[key] = 0
+                else:
+                    weight = keys_weight_dic[key]
+                    if len(value) == 0:
+                        keys_weight_dic[key] = weight + 1
         keys = keys.union(set(content_dic.keys()))
         dic[lang] = content_dic
     # for item in keys:
     #     print(item)
     print("总的翻译文本数量: {0}".format(len(keys)))
-    keys_sorted = sorted(keys)
+    if sortByEmptyContent:
+        keys_sorted = sorted(keys, key=lambda e: keys_weight_dic[e], reverse=True)
+    else:
+        keys_sorted = sorted(keys)
 
     if os.path.exists(excel_path):
         wb = openpyxl.load_workbook(filename=excel_path)
@@ -167,6 +182,7 @@ def parse_argv():
     __parse.add_argument("stringsName", help="翻译文件名称")
     __parse.add_argument("path", help="翻译文件路径")
     __parse.add_argument("-forImport", help="将翻译导入项目", action="store_true")
+    __parse.add_argument("-sortByEmptyContent", help="是否根据未翻译内容排序", action="store_true")
     __parse.add_argument("-notWrapKey", help="不使用引号包裹key值", action="store_true")
     __parse.add_argument("-excelDir", help="翻译Excel文件目录", default="/Users/ldc/Desktop/翻译")
     return __parse.parse_args()
@@ -184,4 +200,4 @@ if __name__ == '__main__':
     else:
         if not os.path.exists(home_dir):
             os.mkdir(home_dir)
-        localize_export(root_path, mode_name, strings_name)
+        localize_export(root_path, mode_name, strings_name, argv.sortByEmptyContent)

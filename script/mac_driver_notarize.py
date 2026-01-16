@@ -12,8 +12,8 @@ import time
 identity = "com.idprt.tspl.printer.mac.driver"
 version = "1.3.3"
 bundle_name = "idprt-tspl-printer-mac-driver"
-codesign_identity = "Developer ID Application: Xiamen Hanin Electronic Technology Co., Ltd. (976NLVLZMW)"
-install_sign_identity = "Developer ID Installer: Xiamen Hanin Electronic Technology Co., Ltd. (976NLVLZMW)"
+codesign_identity = "Developer ID Application: Xiamen Hanin Co.,Ltd. (976NLVLZMW)"
+install_sign_identity = "Developer ID Installer: Xiamen Hanin Co.,Ltd. (976NLVLZMW)"
 developer_name = "ios@prttech.com"
 developer_password = "solr-vnoz-tzpu-pdmr"
 developer_team = "976NLVLZMW"
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
     for item in os.listdir(ppd_dir):
         if item.endswith(".ppd"):
-            cmd = "gzip {0}/{1}".format(ppd_dir, item)
+            cmd = 'gzip "{0}/{1}"'.format(ppd_dir, item)
             print(cmd)
             os.system(cmd)
 
